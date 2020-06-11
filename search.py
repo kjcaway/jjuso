@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QDesktopWidget, QPushButton, QTextBrowser
-from api import juso
+from api.juso import Juso
 
-class MyApp(QWidget):
+class SearchApp(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -55,7 +55,7 @@ class MyApp(QWidget):
     def onSearch(self):
         print(self.keyword)
         
-        x = juso.Juso(self.keyword)
+        x = Juso(self.keyword)
         res = x.getAddress()
         
         totalCount = res['results']['common']['totalCount']
@@ -78,5 +78,5 @@ class MyApp(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyApp()
+    ex = SearchApp()
     sys.exit(app.exec_())
