@@ -1,8 +1,12 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv(verbose=True)
 
 class Juso:
-    confmKey = 'apiKey'
+    confmKey = os.getenv('JUSO_API_KEY')
     keyword = ''
     currentPage = 1
     countPerPage = 10
