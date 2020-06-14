@@ -1,8 +1,13 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QDesktopWidget, QPushButton, QFileDialog, QInputDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QDesktopWidget, QPushButton, QFileDialog, QInputDialog, QProgressBar
+from PyQt5.QtCore import QBasicTimer
 from common.excelo import Excelo
 from api.juso import Juso
+from time import sleep
+import os
+from dotenv import load_dotenv
 
+load_dotenv(verbose=True)
 
 class ExcelWriterApp(QWidget):
     def __init__(self):
@@ -11,6 +16,7 @@ class ExcelWriterApp(QWidget):
         self.fileName = None
         self.sheetName = None
         self.column = None
+        self.sleepGap = int(os.getenv('SLEEP_GAP'))
 
     def initUI(self):
         self.lbl1 = QLabel('엑셀 파일을 하나 선택해서 주소지를 갱신해보세요 !')
@@ -31,6 +37,9 @@ class ExcelWriterApp(QWidget):
 
         self.resultLbl1 = QLabel('')
 
+        self.pbar = QProgressBar(self)
+        self.pbar.hide()
+
         hbox = QHBoxLayout()
         hbox.addWidget(self.lbl1)
         hbox.addWidget(self.btn1)
@@ -48,11 +57,15 @@ class ExcelWriterApp(QWidget):
         hboxResult.addWidget(self.resultLbl1)
         hboxResult.addStretch(1)
 
+        hboxPbar = QHBoxLayout()
+        hboxPbar.addWidget(self.pbar)
+
         vbox = QVBoxLayout()
         vbox.addStretch(1)
         vbox.addLayout(hbox)
         vbox.addLayout(hboxInfo)
         vbox.addLayout(hboxResult)
+        vbox.addLayout(hboxPbar)
         vbox.addStretch(3)
 
         self.setLayout(vbox)
@@ -102,30 +115,45 @@ class ExcelWriterApp(QWidget):
             column, ok = QInputDialog.getItem(self, "컬럼선택", "대상 컬럼를 선택하세요.", columnList, 0, False)
             if ok and column:
                 self.column= str(column)
+                self.pbar.show()
             
             addrList = ex.getAddressList(self.column)
 
             juso = Juso()
             new = Excelo()
 
-            dataRow = ['기존주소', '도로명', '지번']
+            dataRow = ['검색할 주소', '도로명주소', '지번주소', '(?) NoResult 라는 표시는 검색 결과가 0건 이거나 2건 이상 인 경우입니다.']
             new.ws.append(dataRow)
 
-            for idx, addr in enumerate(addrList):
-                json = juso.getAddressForExcel(addr.value)
-                print('row: '+ str(idx) + '---result: ' + str(json))
-                dataRow = []
-                dataRow.append(addr.value)
-                dataRow.append(json['road'] if json is not None else "NoResult")
-                dataRow.append(json['jibun'] if json is not None else "NoResult")
+            lLength = len(addrList) if addrList is not None else 1
+            per = 0
+            step = 100 / lLength
+            cnt = 0
 
-                new.ws.append(dataRow)
+            for idx, addr in enumerate(addrList):
+                if cnt % self.sleepGap == 0:
+                    sleep(2)
+
+                if addr.value is not None:
+                    json = juso.getAddressForExcel(addr.value)
+                    # print('row: '+ str(idx) + '---result: ' + str(json))
+                    dataRow = []
+                    dataRow.append(addr.value)
+                    dataRow.append(json['road'] if json is not None else "NoResult")
+                    dataRow.append(json['jibun'] if json is not None else "NoResult")
+
+                    new.ws.append(dataRow)
+                    per = per + step
+                    self.pbar.setValue(per)
+                    cnt = cnt + 1
             
+            new.setExcelShape()
             new.save()
         except Exception as e:
-            self.resultLbl1.setText("실패!!!" + str(e))
+            self.resultLbl1.setText("실패!!! \n" + str(e) + "\n다시 시도 하려면 프로그램을 껐다가 다시 실행하세용.")
         else:
-            self.resultLbl1.setText("성공!!!")
+            self.pbar.setValue(100)
+            self.resultLbl1.setText("성공!!!" + "\n다시 시도 하려면 프로그램을 껐다가 다시 실행하세용.")
 
 
 

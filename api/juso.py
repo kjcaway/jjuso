@@ -35,7 +35,7 @@ class Juso:
         return json.loads(response)
 
     def getAddressForExcel(self, keyword):
-        if len(keyword) > 15:
+        if len(keyword) > 14:
             datas = {
                 "confmKey" : self.confmKey,
                 "currentPage" : self.currentPage,
