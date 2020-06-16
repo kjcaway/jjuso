@@ -35,11 +35,13 @@ class Excelo:
             self.wb.save("new_"+ str(now) + ".xlsx")
 
     def setExcelShape(self):
-        self.ws['A1'].font = Font(color=BLUE)
-        self.ws['B1'].font = Font(color=BLUE)
+        self.ws['A1'].font = Font(color="FFBB00")
+        self.ws['B1'].font = Font(color="FFBB00")
         self.ws['C1'].font = Font(color=BLUE)
-        self.ws['D1'].font = Font(color=RED)
+        self.ws['D1'].font = Font(color=BLUE)
+        self.ws['E1'].font = Font(color=RED)
         self.ws.column_dimensions['A'].width = 40
-        self.ws.column_dimensions['B'].width = 52
-        self.ws.column_dimensions['C'].width = 40
-        self.ws.column_dimensions['D'].width = 80
+        self.ws.column_dimensions['B'].width = 40
+        self.ws.column_dimensions['C'].width = 52
+        self.ws.column_dimensions['D'].width = 40
+        self.ws.column_dimensions['E'].width = 80

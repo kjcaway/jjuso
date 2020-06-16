@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QDesktopWidget, QPushButton, QFileDialog, QInputDialog, QProgressBar
 from PyQt5.QtCore import QBasicTimer
 from common.excelo import Excelo
+from common.util import getMatchAddress
 from api.juso import Juso
 from time import sleep
 import os
@@ -122,7 +123,7 @@ class ExcelWriterApp(QWidget):
             juso = Juso()
             new = Excelo()
 
-            dataRow = ['검색할 주소', '도로명주소', '지번주소', '(?) NoResult 라는 표시는 검색 결과가 0건 이거나 2건 이상 인 경우입니다.']
+            dataRow = ['입력 주소', '검색할 주소(부분삭제)', '도로명주소', '지번주소', '(?) NoResult 라는 표시는 검색 결과가 0건 이거나 2건 이상 인 경우입니다.']
             new.ws.append(dataRow)
 
             lLength = len(addrList) if addrList is not None else 1
@@ -132,13 +133,14 @@ class ExcelWriterApp(QWidget):
 
             for idx, addr in enumerate(addrList):
                 if cnt % self.sleepGap == 0:
-                    sleep(2)
+                    sleep(1)
 
                 if addr.value is not None:
-                    json = juso.getAddressForExcel(addr.value)
+                    json = juso.getAddressForExcel(getMatchAddress(addr.value))
                     # print('row: '+ str(idx) + '---result: ' + str(json))
                     dataRow = []
                     dataRow.append(addr.value)
+                    dataRow.append(getMatchAddress(addr.value))
                     dataRow.append(json['road'] if json is not None else "NoResult")
                     dataRow.append(json['jibun'] if json is not None else "NoResult")
 
